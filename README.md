@@ -64,6 +64,29 @@ You can then serve the built files from the `dist` directory using any static fi
 npm run preview
 ```
 
+## Native App (iOS)
+
+YouManage is also available as a native iOS application using [Capacitor](https://capacitorjs.com/).
+
+### Prerequisites for iOS
+- **macOS** with the latest version of **Xcode**.
+- **CocoaPods** installed.
+
+### Build and Sync
+To build the web project and sync it with the native iOS project:
+```bash
+npm run ios:sync
+```
+
+### Open in Xcode
+To open the native iOS project in Xcode for building/archiving:
+```bash
+npm run ios:open
+```
+
+### Assets
+Standard assets (icons and splash screens) are located in the `public/` directory and are automatically bundled during the build process.
+
 ## Usage & Verification
 
 1. **First Launch**: Open the application in your browser. It should default to Dark Mode (or respect your system settings).
