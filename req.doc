@@ -1,0 +1,224 @@
+Personal Finance Tracker — Requirements Document (Frontend-Only)
+
+Project Name: Personal Finance Tracker
+
+Platform: Web (mobile-first) — installable as PWA on phone
+Theme: Dark mode, modern, sleek, minimal
+
+Hosting: Vercel (frontend only, no backend required)
+Data Storage: LocalStorage in browser
+
+1️⃣ Objective
+
+Build a personal finance tracker to:
+
+Track income, expenses, debts, and savings
+
+Follow a monthly budget plan
+
+Visualize progress with graphs and bars
+
+Work offline and store all data locally
+
+2️⃣ Target User
+
+Single user (yourself)
+
+Young professional / developer
+
+Wants mobile-friendly, sleek design
+
+Needs budget control and debt tracking
+
+3️⃣ Core Features
+3.1 Dashboard
+
+Show:
+
+Monthly income
+
+Money left today
+
+Remaining budget per category (Food, Lifestyle, Transport, Bills)
+
+Total debts remaining
+
+Savings progress
+
+Visual indicators:
+
+Circular charts for savings progress
+
+Progress bars for debt repayment
+
+3.2 Add Expense
+
+Quick input form:
+
+Category selection
+
+Amount
+
+Optional description
+
+Date (default today)
+
+On save → updates dashboard and LocalStorage
+
+3.3 Debt Tracker
+
+List debts with:
+
+Person name
+
+Total owed
+
+Paid amount
+
+Remaining balance
+
+Visual progress bar per debt
+
+3.4 Savings Tracker
+
+Show:
+
+Total saved this month
+
+Emergency fund progress
+
+Update manually or automatically from remaining budget
+
+3.5 Daily Alerts (Optional)
+
+Show daily remaining budget notification
+
+3.6 History Screen
+
+Scrollable list of all expenses
+
+Color-coded by category
+
+Filter by day/week/month
+
+3.7 Settings
+
+Toggle dark/light mode
+
+Set monthly budgets for each category
+
+Optionally export/import data (JSON backup)
+
+4️⃣ Data Model (LocalStorage)
+
+Income
+
+id
+
+type (Salary / Advance / Side)
+
+amount
+
+date
+
+Expense
+
+id
+
+category (Food / Transport / Bills / Lifestyle / Other)
+
+amount
+
+description
+
+date
+
+Debt
+
+id
+
+person_name
+
+total_amount
+
+paid_amount
+
+remaining_amount
+
+Savings
+
+id
+
+amount_saved
+
+goal_amount
+
+Settings
+
+monthly_budget_per_category
+
+dark_mode_enabled
+
+5️⃣ Technical Stack
+
+Frontend: React (Vite / Next.js)
+
+UI Framework: Tailwind CSS (dark mode first)
+
+Charts: Recharts / Chart.js
+
+State Management: React Context or Zustand
+
+Data Storage: LocalStorage (browser)
+
+Hosting: Vercel (frontend only)
+
+Optional: PWA for mobile install
+
+6️⃣ UX / UI Requirements
+
+Mobile-first design
+
+Dark mode as default
+
+Modern, sleek, minimalist
+
+Rounded cards with subtle shadows
+
+Readable fonts, neon or soft accent colors for highlights
+
+Bottom navigation bar for:
+
+Dashboard
+
+Add Expense
+
+History
+
+Debt Tracker
+
+Settings
+
+7️⃣ App Workflow
+
+User opens app → Dashboard loads data from LocalStorage
+
+User adds income / expense → updates LocalStorage → updates dashboard
+
+User tracks debts → updates LocalStorage
+
+User views savings / progress bars
+
+User can export/import data as JSON if needed
+
+Optional daily alert shows remaining budget
+
+8️⃣ Hosting & Deployment
+
+Deploy React app on Vercel
+
+No backend required
+
+Works offline via PWA
+
+Data persists via LocalStorage
