@@ -1,80 +1,55 @@
-# 📱 YouManage: Detailed Feature Documentation
+# 📱 YouManage: Comprehensive Application Documentation
 
-A comprehensive technical and functional breakdown of all capabilities in the YouManage Personal Finance Tracker.
-
----
-
-## 🏗️ Core Technology & Architecture
-- **Offline-First Excellence**: Built using a robust offline-first strategy. The app logic resides entirely in the client, ensuring zero latency and 100% availability without internet.
-- **LocalStorage Data Engine**: 
-  - Uses a custom `useLocalStorage` hook for reactive state synchronization.
-  - Data is structured in a central `FinanceState` object containing categorized arrays for income, expenses, debts, and savings.
-  - **Auto-Healing Migration**: On app startup, a persistence layer checks for missing data structures and automatically initializes them to prevent runtime errors with older data versions.
-- **PWA Capabilities**: 
-  - Service Workers handle resource caching for instant loads.
-  - Manifest configuration allows "Add to Home Screen" on iOS and Android for a full-screen, native-app experience.
-- **Premium Dark UI**: A bespoke design system using Tailwind CSS, featuring "Glassmorphism" effects, smooth transitions (Framer Motion), and high-contrast accessibility.
+YouManage is a professional, offline-first Personal Finance Tracker PWA. It provides a premium, secure, and data-driven experience for managing your financial life entirely on your device.
 
 ---
 
-## 🏁 First-Time User Onboarding (Phase 15)
-- **Engaging 5-Step Flow**:
-  1. **Security PIN**: Setup a 4-6 digit code to lock the app locally.
-  2. **Feature Spotlight**: Visual overview of key functional areas.
-  3. **Salary Automation**: Set your baseline monthly income and payday.
-  4. **Emergency Fund**: Optional instant creation of a savings goal.
-  5. **Final Review**: Summary of your setup before entering the Dashboard.
-- **Persistent State**: The onboarding experience is skipped automatically once completed.
+## 🏗️ Technical Architecture & Stack
+- **React 18 & Vite**: For a high-performance, modern web foundation.
+- **Offline-First Excellence**: Uses `localStorage` as its primary database. No cloud, no tracking, total privacy.
+- **PWA Ready**: Fully installable on iOS and Android with offline service workers.
+- **Design System**: A bespoke "Glassmorphic" dark theme built with **Tailwind CSS** and **Framer Motion** for premium feel.
+- **Iconography**: Clean, vector-based visuals using **Lucide React**.
 
 ---
 
-## 🔒 Security & Privacy
-- **Local PIN Lock**: If enabled, the app presents an animated keypad on every new session.
-- **Zero Cloud Storage**: Your financial data never leaves your device's LocalStorage.
-- **Emergency Disable**: PIN can be disabled or changed anytime within Settings (requires confirmation).
+## 📂 Project Structure
+- `src/context/FinanceContext.tsx`: The "Brain" of the app. Manages all financial state, automation logic, and persistence.
+- `src/components/Onboarding.tsx`: A data-driven 7-step guide to set up your financial year.
+- `src/components/PinLock.tsx`: Local security layer that protects your data with a 4-6 digit code.
+- `src/hooks/useLocalStorage.ts`: Custom hook for reactive, safe, and persistent data storage.
+- `src/pages/`: Core application screens:
+  - **Dashboard**: Real-time spending analysis and daily guardrails.
+  - **Income & Salary**: Manage monthly earnings and automation.
+  - **Monthly Bills**: Track fixed costs and recurring subscriptions.
+  - **Savings & Debts**: Visual progress towards financial goals and liability tracking.
+  - **History**: Grouped transaction logs with audit-quality transparency.
 
 ---
 
-## 📊 Dashboard: The Command Center
-- **Smart Hero Card**: 
-  - **Dynamic Calculation**: Displays "Money Left Today" using the formula: `(Remaining Monthly Budget - Monthly Bills / Days Left) - Spent Today`.
-  - **Triple-State Visuals**: 🟢 Emerald (Safe), 🟡 Amber (80% used), 🔴 Red (Exceeded).
-- **Interactive Analytics**: 
-  - **Spending Distribution**: Responsive Pie Chart of current month expenses.
-  - **Category Health**: Progress bars that transition color as you approach monthly limits.
+## 🏁 Advanced Onboarding Flow
+The unique onboarding process ensures you start with accurate data:
+1.  **Security**: Define a local PIN for privacy.
+2.  **Salary Entry**: Set your monthly income and exact payday.
+3.  **Automation Switch**: Toggle if the app should record your salary automatically each month.
+4.  **Extra Income**: Add side-hustles or one-time bonuses.
+5.  **Essential Budgets**: Suggestions for Food, Transport, Bills, and more based on financial best practices.
+6.  **Emergency Fund**: Set a priority savings target (e.g., 3 months of expenses).
+7.  **Daily Allowance**: Real-time calculation of your safe daily spending limit.
 
 ---
 
-## 💸 Expense & Bill Management
-- **Monthly Bills (Phase 16)**: 
-  - Track fixed costs like Rent, Netflix, or Utilities.
-  - These are prioritized in your daily budget calculations.
-- **Intelligent Creation**: 
-  - Real-time "Budget Projection" warns you *before* you submit an expense if it will exceed a limit.
-- **History Audit**: 
-  - Grouped by date with daily totals.
-  - Multi-view filtering (Day/Week/Month).
+## 🔒 Security & Data Portability
+- **Local PIN Lock**: Optional security layer that keeps your data private on shared devices.
+- **Zero Cloud Storage**: Your data never leaves your device.
+- **Full Data Portability**: 
+  - **JSON Export**: Download your entire history as a portable file.
+  - **JSON Import**: Smart Merge or Overwrite options with schema validation.
 
 ---
 
-## 💰 Income & Salary Automation
-- **Monthly Salary Engine**: 
-  - Background check auto-generates your salary income on your chosen payday.
-- **Extra Income Tracking**: 
-  - Form for one-time bonuses, gifts, or side hustles.
-
----
-
-## 🎯 Savings Goals & Debt Tracker
-- **Target-Based Savings**: Progress visualization via donut charts.
-- **Debt Liability Tracker**: Bilateral management of money owed and to be collected.
-- **Visual Repayment**: Gradient bars showing completion percentage of debts.
-
----
-
-## ⚙️ Advanced Data Tools
-- **Budget Configuration**: Per-category limit setting.
-- **Dual Budget Modes**: Choose between System Recommended or Custom Daily limits.
-- **Backup & Portability**: 
-  - **JSON Export**: Timestamped full data backups.
-  - **JSON Import**: Smart Merge (handles duplicates) or Replace (clean slate) modes with strict schema validation.
+## � Key Functional Logic
+- **Daily Budget Calculation**: `((Current Balance - Total Bills) / Days Left in Month)`.
+- **Salary Automation**: The app checks on your payday and auto-records your salary income only if enabled.
+- **Budget Health**: Dynamic progress bars that turn Red if you exceed your planned category limits.
+- **Debt Tracking**: Bilateral tracking for money owed to you and money you owe others.
