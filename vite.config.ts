@@ -3,18 +3,18 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { imagetools } from 'vite-imagetools'
 
 export default defineConfig({
   plugins: [
-    // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
+    imagetools(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
         name: 'Personal Finance Tracker',
-        short_name: 'Finance',
+        short_name: 'YouManage',
         theme_color: '#000000',
         background_color: '#000000',
         display: 'standalone',
@@ -36,11 +36,20 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
     },
   },
-
-  // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router'],
+          'vendor-charts': ['recharts'],
+          'vendor-ui': ['lucide-react', 'framer-motion'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+  },
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

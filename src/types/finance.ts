@@ -1,4 +1,4 @@
-export type ExpenseCategory = 'Food' | 'Transport' | 'Bills' | 'Lifestyle' | 'Other';
+export type ExpenseCategory = string;
 
 export type IncomeType = 'Salary' | 'Extra';
 
@@ -9,14 +9,24 @@ export interface Income {
   description?: string;
   date: string;
   is_recurring?: boolean;
+  tags?: string[];
 }
 
 export interface Expense {
   id: string;
+  name: string;
   category: ExpenseCategory;
   amount: number;
   description?: string;
   date: string;
+  tags?: string[];
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  color: string;
+  icon?: string;
 }
 
 export interface RecurringExpense {
@@ -26,6 +36,7 @@ export interface RecurringExpense {
   category: ExpenseCategory;
   day_of_month: number;
   description?: string;
+  tags?: string[];
 }
 
 export interface Debt {
@@ -47,6 +58,22 @@ export interface SavingsGoal {
   description?: string;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked_at?: string;
+}
+
+export interface GamificationStats {
+  current_streak: number;
+  longest_streak: number;
+  last_logged_date?: string;
+  total_savings_milestones_reached: number;
+  achievements: Achievement[];
+}
+
 export interface Settings {
   monthly_budget_per_category: Record<ExpenseCategory, number>;
   dark_mode_enabled: boolean;
@@ -57,6 +84,7 @@ export interface Settings {
   custom_daily_budget?: number;
   has_completed_onboarding: boolean;
   security_pin?: string;
+  notifications_enabled?: boolean;
 }
 
 export interface FinanceState {
@@ -65,5 +93,7 @@ export interface FinanceState {
   debts: Debt[];
   savingsGoals: SavingsGoal[];
   recurringExpenses: RecurringExpense[];
+  categories: Category[];
   settings: Settings;
+  gamification: GamificationStats;
 }

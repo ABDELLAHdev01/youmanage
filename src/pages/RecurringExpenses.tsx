@@ -19,14 +19,19 @@ interface RecurringExpenseFormData {
     amount: number;
     category: ExpenseCategory;
     day_of_month: number;
+    tags: string;
 }
 
 export const RecurringExpenses: React.FC = () => {
-    const { recurringExpenses, addRecurringExpense, deleteRecurringExpense } = useFinance();
+    const { recurringExpenses, addRecurringExpense, deleteRecurringExpense, categories: contextCategories } = useFinance();
     const [isAdding, setIsAdding] = useState(false);
-    const { register, handleSubmit, reset } = useForm<RecurringExpenseFormData>();
-
-    const categories: ExpenseCategory[] = ['Food', 'Transport', 'Bills', 'Lifestyle', 'Other'];
+    const { register, handleSubmit, reset } = useForm<RecurringExpenseFormData>({
+        defaultValues: {
+            category: contextCategories[0]?.name || 'Other',
+            day_of_month: 1,
+            tags: ''
+        }
+    });
 
     const onSubmit = (data: RecurringExpenseFormData) => {
         addRecurringExpense({
@@ -34,19 +39,18 @@ export const RecurringExpenses: React.FC = () => {
             amount: Number(data.amount),
             category: data.category,
             day_of_month: Number(data.day_of_month),
+            tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : []
         });
         reset();
         setIsAdding(false);
     };
 
-    const getIcon = (category: string) => {
-        switch (category) {
-            case 'Bills': return <Zap size={18} className="text-amber-400" />;
-            case 'Transport': return <Zap size={18} className="text-blue-400" />;
-            case 'Food': return <ShoppingBag size={18} className="text-emerald-400" />;
-            case 'Lifestyle': return <CreditCard size={18} className="text-rose-400" />;
-            default: return <Home size={18} className="text-zinc-400" />;
-        }
+    const getCategoryStyles = (categoryName: string) => {
+        const cat = contextCategories.find(c => c.name === categoryName);
+        return {
+            color: cat?.color || '#3f3f46',
+            icon: <Home size={18} />
+        };
     };
 
     return (
@@ -99,10 +103,15 @@ export const RecurringExpenses: React.FC = () => {
                             {...register('category', { required: true })}
                             className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none appearance-none"
                         >
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
+                            {contextCategories.map(cat => (
+                                <option key={cat.id} value={cat.name}>{cat.name}</option>
                             ))}
                         </select>
+                        <input
+                            {...register('tags')}
+                            placeholder="Tags (comma separated)"
+                            className="w-full bg-zinc-950 border border-zinc-800 text-white px-4 py-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
+                        />
                     </div>
                     <button type="submit" className="w-full bg-teal-500 text-zinc-950 font-bold py-3 rounded-xl shadow-lg shadow-teal-500/10 active:scale-95 transition-all">
                         Schedule Bill
@@ -119,32 +128,49 @@ export const RecurringExpenses: React.FC = () => {
                         <p className="text-zinc-500 font-medium">No recurring bills added yet.</p>
                     </div>
                 ) : (
-                    recurringExpenses.map((expense) => (
-                        <div key={expense.id} className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between group">
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800">
-                                    {getIcon(expense.category)}
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-bold text-sm">{expense.name}</h3>
-                                    <div className="flex items-center space-x-2 text-[10px] text-zinc-500 mt-0.5">
-                                        <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 capitalize">{expense.category}</span>
-                                        <span>•</span>
-                                        <span>Day {expense.day_of_month}</span>
+                    recurringExpenses.map((expense) => {
+                        const { color, icon } = getCategoryStyles(expense.category);
+                        return (
+                            <div key={expense.id} className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 flex flex-col group space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                        <div
+                                            className="p-3 rounded-xl text-white shadow-lg"
+                                            style={{ backgroundColor: color }}
+                                        >
+                                            {icon}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-bold text-sm">{expense.name}</h3>
+                                            <div className="flex items-center space-x-2 text-[10px] text-zinc-500 mt-0.5">
+                                                <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 capitalize">{expense.category}</span>
+                                                <span>•</span>
+                                                <span>Day {expense.day_of_month}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-4">
+                                        <span className="text-white font-bold text-sm">-${expense.amount.toFixed(2)}</span>
+                                        <button
+                                            onClick={() => deleteRecurringExpense(expense.id)}
+                                            className="p-2 text-zinc-700 hover:text-red-400 transition-colors"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 </div>
+                                {expense.tags && expense.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 pl-14">
+                                        {expense.tags.map(tag => (
+                                            <span key={tag} className="text-[9px] font-bold px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded-full border border-zinc-700/50">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center space-x-4">
-                                <span className="text-white font-bold text-sm">-${expense.amount.toFixed(2)}</span>
-                                <button
-                                    onClick={() => deleteRecurringExpense(expense.id)}
-                                    className="p-2 text-zinc-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 

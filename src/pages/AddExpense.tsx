@@ -1,26 +1,29 @@
 import React from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { ExpenseCategory } from '../types/finance';
+import { ExpenseCategory, Expense, Category } from '../types/finance';
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Calendar as CalendarIcon, DollarSign, Tag, AlignLeft, AlertTriangle, AlertCircle } from 'lucide-react';
 
 interface ExpenseFormData {
+    name: string;
     amount: number;
     category: ExpenseCategory;
     description: string;
     date: string;
+    tags: string;
 }
 
 export const AddExpense: React.FC = () => {
-    const { addExpense, expenses, settings } = useFinance();
+    const { addExpense, expenses, settings, categories: contextCategories } = useFinance();
     const navigate = useNavigate();
 
     const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ExpenseFormData>({
         defaultValues: {
-            category: 'Food',
+            category: contextCategories[0]?.name || 'Other',
             date: new Date().toISOString().split('T')[0],
-            description: ''
+            description: '',
+            tags: ''
         }
     });
 
@@ -28,8 +31,8 @@ export const AddExpense: React.FC = () => {
     const watchedAmount = watch('amount') || 0;
 
     const categorySpent = expenses
-        .filter(e => e.category === watchedCategory)
-        .reduce((acc, curr) => acc + curr.amount, 0);
+        .filter((e: Expense) => e.category === watchedCategory)
+        .reduce((acc: number, curr: Expense) => acc + curr.amount, 0);
 
     const categoryLimit = settings.monthly_budget_per_category[watchedCategory] || 0;
     const totalAfterPurchase = categorySpent + Number(watchedAmount);
@@ -39,15 +42,17 @@ export const AddExpense: React.FC = () => {
 
     const onSubmit = (data: ExpenseFormData) => {
         addExpense({
-            ...data,
+            name: data.name,
             amount: Number(data.amount),
-            date: new Date(data.date).toISOString()
+            date: new Date(data.date).toISOString(),
+            tags: data.tags ? data.tags.split(',').map((tag: string) => tag.trim()) : [],
+            category: data.category,
+            description: data.description
         });
         reset();
         navigate('/');
     };
 
-    const categories: ExpenseCategory[] = ['Food', 'Transport', 'Bills', 'Lifestyle', 'Other'];
 
     return (
         <div className="p-4 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -93,6 +98,15 @@ export const AddExpense: React.FC = () => {
                     )}
 
                     <div className="grid grid-cols-1 gap-4">
+                        {/* Name Input */}
+                        <div className="relative">
+                            <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+                            <input
+                                {...register('name', { required: true })}
+                                placeholder="Expense Name (e.g. Starbucks)"
+                                className="w-full bg-zinc-900 border border-zinc-800 text-white pl-12 pr-4 py-4 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition-all font-bold"
+                            />
+                        </div>
                         {/* Category Select */}
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Category</label>
@@ -104,8 +118,8 @@ export const AddExpense: React.FC = () => {
                                     {...register('category', { required: true })}
                                     className="block w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-700 text-white rounded-xl focus:ring-2 focus:ring-teal-500 outline-none appearance-none transition-all"
                                 >
-                                    {categories.map((c) => (
-                                        <option key={c} value={c}>{c}</option>
+                                    {contextCategories.map((c: Category) => (
+                                        <option key={c.id} value={c.name}>{c.name}</option>
                                     ))}
                                 </select>
                             </div>
@@ -138,6 +152,22 @@ export const AddExpense: React.FC = () => {
                                     {...register('description')}
                                     className="block w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-700 text-white rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all"
                                     placeholder="What was this for?"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Tags Input */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Tags (Optional)</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Tag className="text-zinc-500" size={18} />
+                                </div>
+                                <input
+                                    type="text"
+                                    {...register('tags')}
+                                    className="block w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-700 text-white rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                                    placeholder="Work, Fun, Urgent... (comma separated)"
                                 />
                             </div>
                         </div>

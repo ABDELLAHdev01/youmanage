@@ -1,15 +1,32 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { Settings as SettingsIcon, Download, Upload, Moon, DollarSign, CheckCircle2, AlertCircle, Zap, Shield, CreditCard, ChevronRight } from 'lucide-react';
+import {
+    Settings as SettingsIcon,
+    Download,
+    Upload,
+    Moon,
+    DollarSign,
+    CheckCircle2,
+    AlertCircle,
+    Zap,
+    Shield,
+    CreditCard,
+    ChevronRight,
+    LayoutGrid,
+    Bell,
+    BellOff,
+    Trophy
+} from 'lucide-react';
 import { Link } from 'react-router';
-import { ExpenseCategory } from '../types/finance';
+import { ExpenseCategory, Achievement } from '../types/finance';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Settings: React.FC = () => {
-    const { settings, updateSettings, importState, income, expenses } = useFinance();
+    const { settings, updateSettings, importState, income, expenses, categories: contextCategories, toggleNotifications, gamification } = useFinance();
     const [budgets, setBudgets] = useState(settings.monthly_budget_per_category);
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-    const handleBudgetChange = (category: ExpenseCategory, value: string) => {
+    const handleBudgetChange = (category: string, value: string) => {
         const newBudgets = { ...budgets, [category]: parseFloat(value) || 0 };
         setBudgets(newBudgets);
         updateSettings({ ...settings, monthly_budget_per_category: newBudgets });
@@ -54,8 +71,7 @@ export const Settings: React.FC = () => {
                 const json = event.target?.result as string;
                 const data = JSON.parse(json);
 
-                // Simple validation
-                if (!data.income || !data.expenses || !data.settings) {
+                if (!data.expenses || !data.settings) {
                     throw new Error('Invalid backup format');
                 }
 
@@ -65,7 +81,6 @@ export const Settings: React.FC = () => {
                 const success = importState(data, mode);
                 if (success) {
                     showFeedback('success', `Data ${mode === 'merge' ? 'merged' : 'replaced'} successfully!`);
-                    // If replace, local storage state updates might need a reload or careful state management
                     if (mode === 'replace') {
                         setTimeout(() => window.location.reload(), 1000);
                     }
@@ -77,11 +92,8 @@ export const Settings: React.FC = () => {
             }
         };
         reader.readAsText(file);
-        // Reset input
         e.target.value = '';
     };
-
-    const categories: ExpenseCategory[] = ['Food', 'Transport', 'Bills', 'Lifestyle', 'Other'];
 
     // Calculate Recommended Daily Budget
     const totalIncome = (income || []).reduce((acc: number, curr: any) => acc + curr.amount, 0);
@@ -97,6 +109,14 @@ export const Settings: React.FC = () => {
 
     const handleCustomDailyBudgetChange = (value: string) => {
         updateSettings({ ...settings, custom_daily_budget: parseFloat(value) || 0 });
+    };
+
+    const handleToggleNotifications = async () => {
+        const newState = !settings.notifications_enabled;
+        const success = await toggleNotifications(newState);
+        if (!success && newState) {
+            alert('Please enable notifications in your browser settings to use this feature.');
+        }
     };
 
     return (
@@ -125,12 +145,17 @@ export const Settings: React.FC = () => {
                         </div>
                         <span className="text-white font-medium">Dark Mode Enabled</span>
                     </div>
-                    <div
+                    <motion.div
+                        layout
                         onClick={() => updateSettings({ ...settings, dark_mode_enabled: !settings.dark_mode_enabled })}
                         className={`w-12 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors ${settings.dark_mode_enabled ? 'bg-teal-500 justify-end' : 'bg-zinc-800 justify-start'}`}
                     >
-                        <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                    </div>
+                        <motion.div
+                            layout
+                            className="w-4 h-4 bg-white rounded-full shadow-sm"
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                    </motion.div>
                 </div>
 
                 {/* Financial Sections */}
@@ -144,12 +169,21 @@ export const Settings: React.FC = () => {
                         </div>
                         <ChevronRight size={18} className="text-zinc-600" />
                     </Link>
-                    <Link to="/recurring" className="flex items-center justify-between p-4 hover:bg-zinc-800/50 transition-colors">
+                    <Link to="/recurring" className="flex items-center justify-between p-4 hover:bg-zinc-800/50 transition-colors border-b border-zinc-800/50">
                         <div className="flex items-center space-x-3">
                             <div className="bg-amber-500/10 p-2 rounded-xl text-amber-400">
                                 <CreditCard size={20} />
                             </div>
                             <span className="text-white font-medium">Monthly Bills</span>
+                        </div>
+                        <ChevronRight size={18} className="text-zinc-600" />
+                    </Link>
+                    <Link to="/categories" className="flex items-center justify-between p-4 hover:bg-zinc-800/50 transition-colors">
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-emerald-500/10 p-2 rounded-xl text-emerald-400">
+                                <LayoutGrid size={20} />
+                            </div>
+                            <span className="text-white font-medium">Expense Categories</span>
                         </div>
                         <ChevronRight size={18} className="text-zinc-600" />
                     </Link>
@@ -188,6 +222,59 @@ export const Settings: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Notifications Section */}
+                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-6 space-y-4 shadow-lg shadow-black/5">
+                    <h2 className="text-white font-bold flex items-center space-x-2">
+                        <Bell size={18} className="text-teal-400" />
+                        <span>Communication</span>
+                    </h2>
+
+                    <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-2xl border border-zinc-800">
+                        <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-xl ${settings.notifications_enabled ? 'bg-teal-500/10 text-teal-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                                {settings.notifications_enabled ? <Bell size={20} /> : <BellOff size={20} />}
+                            </div>
+                            <div>
+                                <p className="text-white font-bold text-sm">Budget Alerts</p>
+                                <p className="text-zinc-500 text-[10px]">Notify at 80% and 100% of limits</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleToggleNotifications}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.notifications_enabled ? 'bg-teal-500' : 'bg-zinc-800'
+                                }`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.notifications_enabled ? 'left-7' : 'left-1'
+                                }`} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Achievement / Trophy Room */}
+                <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-6 space-y-4 shadow-lg shadow-black/5">
+                    <h2 className="text-white font-bold flex items-center space-x-2">
+                        <Trophy size={18} className="text-amber-400" />
+                        <span>Achievements</span>
+                    </h2>
+                    <div className="grid grid-cols-3 gap-3">
+                        {gamification.achievements.map((achievement: Achievement) => (
+                            <div
+                                key={achievement.id}
+                                className={`flex flex-col items-center p-3 rounded-2xl border ${achievement.unlocked_at ? 'bg-zinc-800/50 border-amber-500/20' : 'bg-zinc-950/20 border-zinc-800'
+                                    }`}
+                            >
+                                <div className={`text-2xl mb-2 ${achievement.unlocked_at ? '' : 'filter grayscale opacity-40'}`}>
+                                    {achievement.icon}
+                                </div>
+                                <span className="text-[9px] font-black text-center text-white line-clamp-1">{achievement.title}</span>
+                                <p className="text-[7px] text-zinc-600 text-center leading-tight mt-1 capitalize">
+                                    {achievement.unlocked_at ? 'Unlocked' : 'Locked'}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Daily Budget Settings */}
                 <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 space-y-5 shadow-lg shadow-black/5">
                     <div className="flex items-center justify-between">
@@ -218,7 +305,7 @@ export const Settings: React.FC = () => {
                             <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/50 border-dashed">
                                 <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider font-bold">System Recommendation</p>
                                 <p className="text-2xl font-black text-white">${recommendedDaily.toFixed(2)}<span className="text-zinc-700 text-sm font-normal ml-2">/ day</span></p>
-                                <p className="text-[10px] text-zinc-600 mt-2 leading-relaxed">Calculated based on your total income minus planned category budgets, distributed over the remaining {daysLeft} days of the month.</p>
+                                <p className="text-[10px] text-zinc-600 mt-2 leading-relaxed">Calculated based on your income and monthly budgets distributed over {daysLeft} days.</p>
                             </div>
                         ) : (
                             <div className="flex items-center justify-between">
@@ -253,9 +340,7 @@ export const Settings: React.FC = () => {
                     </div>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <span className="text-zinc-500 text-sm font-medium">Monthly Amount</span>
-                            </div>
+                            <span className="text-zinc-500 text-sm font-medium">Monthly Amount</span>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-xs">$</span>
                                 <input
@@ -291,11 +376,10 @@ export const Settings: React.FC = () => {
                                 <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${settings.recurring_salary_enabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
                             </div>
                         </div>
-                        <p className="text-[10px] text-zinc-600 italic">App will auto-add this amount as income on the selected day each month if enabled.</p>
                     </div>
                 </div>
 
-                {/* Budget Editor */}
+                {/* Monthly Budgets */}
                 <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 space-y-5 shadow-lg shadow-black/5">
                     <div className="flex items-center space-x-3">
                         <div className="bg-zinc-800 p-2 rounded-xl text-zinc-400">
@@ -304,15 +388,15 @@ export const Settings: React.FC = () => {
                         <h2 className="text-white font-bold">Monthly Budgets</h2>
                     </div>
                     <div className="space-y-4">
-                        {categories.map((cat) => (
-                            <div key={cat} className="flex items-center justify-between">
-                                <span className="text-zinc-500 text-sm font-medium">{cat}</span>
+                        {contextCategories.map((cat) => (
+                            <div key={cat.id} className="flex items-center justify-between">
+                                <span className="text-zinc-500 text-sm font-medium">{cat.name}</span>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-xs">$</span>
                                     <input
                                         type="number"
-                                        value={budgets[cat]}
-                                        onChange={(e) => handleBudgetChange(cat, e.target.value)}
+                                        value={budgets[cat.name] || 0}
+                                        onChange={(e) => handleBudgetChange(cat.name, e.target.value)}
                                         className="w-28 bg-zinc-950 text-white rounded-xl pl-6 pr-3 py-2 text-right outline-none border border-zinc-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                                     />
                                 </div>
@@ -338,9 +422,6 @@ export const Settings: React.FC = () => {
                             <input type="file" accept=".json" className="hidden" onChange={handleImport} />
                         </label>
                     </div>
-                    <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest font-bold">
-                        Local Storage • Offline Only
-                    </p>
                 </div>
             </div>
         </div>

@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useForm } from 'react-hook-form';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Plus, Target, DollarSign, CheckCircle2, Trash2 } from 'lucide-react';
+
+// Lazy load Recharts components
+const ResponsiveContainer = lazy(() => import('recharts').then(mod => ({ default: mod.ResponsiveContainer })));
+const PieChart = lazy(() => import('recharts').then(mod => ({ default: mod.PieChart })));
+const Pie = lazy(() => import('recharts').then(mod => ({ default: mod.Pie })));
+const Cell = lazy(() => import('recharts').then(mod => ({ default: mod.Cell })));
+
+const ChartPlaceholder = () => (
+    <div className="w-16 h-16 rounded-full bg-zinc-800 animate-pulse flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-zinc-700 border-t-teal-500 rounded-full animate-spin"></div>
+    </div>
+);
 
 interface SavingsGoalFormData {
     name: string;
@@ -105,24 +116,26 @@ export const SavingsTracker: React.FC = () => {
                                 <div className="flex justify-between items-start relative z-10">
                                     <div className="flex items-center space-x-3">
                                         <div className="w-16 h-16 relative">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={chartData}
-                                                        innerRadius={22}
-                                                        outerRadius={30}
-                                                        paddingAngle={2}
-                                                        dataKey="value"
-                                                        stroke="none"
-                                                        startAngle={90}
-                                                        endAngle={-270}
-                                                    >
-                                                        {chartData.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                                        ))}
-                                                    </Pie>
-                                                </PieChart>
-                                            </ResponsiveContainer>
+                                            <Suspense fallback={<ChartPlaceholder />}>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={chartData}
+                                                            innerRadius={22}
+                                                            outerRadius={30}
+                                                            paddingAngle={2}
+                                                            dataKey="value"
+                                                            stroke="none"
+                                                            startAngle={90}
+                                                            endAngle={-270}
+                                                        >
+                                                            {chartData.map((entry, index) => (
+                                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                                            ))}
+                                                        </Pie>
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </Suspense>
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                 <span className="text-[10px] font-bold text-white">{progress.toFixed(0)}%</span>
                                             </div>

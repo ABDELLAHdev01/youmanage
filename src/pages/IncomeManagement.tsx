@@ -1,8 +1,8 @@
 import React from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useForm } from 'react-hook-form';
-import { Plus, Wallet, Calendar, FileText, Trash2, ArrowUpCircle, Repeat } from 'lucide-react';
-import { Income, IncomeType } from '../types/finance';
+import { Plus, Wallet, Calendar, FileText, Trash2, ArrowUpCircle, Repeat, Home } from 'lucide-react';
+import { Income, IncomeType, Category, ExpenseCategory, RecurringExpense, Expense } from '../types/finance';
 
 interface IncomeFormData {
     amount: number;
@@ -10,6 +10,7 @@ interface IncomeFormData {
     date: string;
     type: IncomeType;
     is_recurring: boolean;
+    tags: string;
 }
 
 export const IncomeManagement: React.FC = () => {
@@ -18,7 +19,8 @@ export const IncomeManagement: React.FC = () => {
         defaultValues: {
             date: new Date().toISOString().split('T')[0],
             type: 'Extra',
-            is_recurring: false
+            is_recurring: false,
+            tags: ''
         }
     });
 
@@ -29,17 +31,19 @@ export const IncomeManagement: React.FC = () => {
             ...data,
             amount: Number(data.amount),
             date: new Date(data.date).toISOString(),
+            tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : []
         });
         reset({
             amount: undefined,
             description: '',
             date: new Date().toISOString().split('T')[0],
             type: 'Extra',
-            is_recurring: false
+            is_recurring: false,
+            tags: ''
         });
     };
 
-    const salaryTemplate = income.find(i => i.is_recurring && i.type === 'Salary');
+    const salaryTemplate = income.find((i: Income) => i.is_recurring && i.type === 'Salary');
 
     return (
         <div className="p-4 space-y-6 animate-in fade-in duration-500 pb-24">
@@ -107,8 +111,8 @@ export const IncomeManagement: React.FC = () => {
                                 setValue('is_recurring', false);
                             }}
                             className={`p-3 rounded-xl text-xs font-bold transition-all border ${incomeType === 'Extra'
-                                    ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'
-                                    : 'bg-zinc-950 border-zinc-800 text-zinc-500'
+                                ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'
+                                : 'bg-zinc-950 border-zinc-800 text-zinc-500'
                                 }`}
                         >
                             Extra Income
@@ -120,8 +124,8 @@ export const IncomeManagement: React.FC = () => {
                                 setValue('is_recurring', true);
                             }}
                             className={`p-3 rounded-xl text-xs font-bold transition-all border ${incomeType === 'Salary'
-                                    ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'
-                                    : 'bg-zinc-950 border-zinc-800 text-zinc-500'
+                                ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'
+                                : 'bg-zinc-950 border-zinc-800 text-zinc-500'
                                 }`}
                         >
                             Monthly Salary
@@ -157,6 +161,15 @@ export const IncomeManagement: React.FC = () => {
                         />
                     </div>
 
+                    <div className="relative">
+                        <Plus className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+                        <input
+                            {...register('tags')}
+                            placeholder="Tags (comma separated)"
+                            className="w-full bg-zinc-950 text-white rounded-2xl py-4 pl-12 pr-4 outline-none border border-zinc-800 focus:ring-2 focus:ring-teal-500 transition-all font-medium"
+                        />
+                    </div>
+
                     <button
                         type="submit"
                         className="w-full bg-teal-500 hover:bg-teal-400 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-lg shadow-teal-500/20"
@@ -171,29 +184,40 @@ export const IncomeManagement: React.FC = () => {
                 <h2 className="text-zinc-500 text-xs font-bold uppercase tracking-widest px-2">Recent Records</h2>
                 <div className="space-y-2">
                     {income
-                        .filter(i => !i.is_recurring) // Only show records, not templates
-                        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                        .filter((i: Income) => !i.is_recurring) // Only show records, not templates
+                        .sort((a: Income, b: Income) => new Date(b.date).getTime() - new Date(a.date).getTime())
                         .slice(0, 10)
-                        .map((item) => (
-                            <div key={item.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex items-center justify-between group">
-                                <div className="flex items-center space-x-3">
-                                    <div className={`p-2 rounded-xl ${item.type === 'Salary' ? 'bg-teal-500/10 text-teal-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                                        <ArrowUpCircle size={18} />
+                        .map((item: Income) => (
+                            <div key={item.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex flex-col group space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className={`p-2 rounded-xl ${item.type === 'Salary' ? 'bg-teal-500/10 text-teal-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                                            <ArrowUpCircle size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-bold text-sm">{item.description || item.type}</p>
+                                            <p className="text-zinc-500 text-[10px]">{new Date(item.date).toLocaleDateString()}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-white font-bold text-sm">{item.description || item.type}</p>
-                                        <p className="text-zinc-500 text-[10px]">{new Date(item.date).toLocaleDateString()}</p>
+                                    <div className="flex items-center space-x-3">
+                                        <span className="text-teal-400 font-bold text-sm">+${item.amount.toLocaleString()}</span>
+                                        <button
+                                            onClick={() => deleteIncome(item.id)}
+                                            className="p-1 text-zinc-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-3">
-                                    <span className="text-teal-400 font-bold text-sm">+${item.amount.toLocaleString()}</span>
-                                    <button
-                                        onClick={() => deleteIncome(item.id)}
-                                        className="p-1 text-zinc-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
+                                {item.tags && item.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 pl-11">
+                                        {item.tags.map((tag: string) => (
+                                            <span key={tag} className="text-[9px] font-bold px-2 py-0.5 bg-zinc-800 text-zinc-500 rounded-full border border-zinc-700/50">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         ))}
                 </div>
